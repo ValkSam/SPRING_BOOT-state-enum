@@ -1,9 +1,9 @@
 package com.example.demo.service.state.order;
 
 /**
- * Created by ValkSam on 18.02.2017.
+ * Created by ValkSam
  */
-public enum OrderActionEnum {
+public enum OrderActionEnum implements IStatusAction{
   ACCEPT,
   SAVE,
   REJECT,
