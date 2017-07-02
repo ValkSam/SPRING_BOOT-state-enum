@@ -1,8 +1,11 @@
 package com.example.demo.service.state.order;
 
+import com.example.demo.service.state.exception.ActionConditionFailedException;
+import com.example.demo.service.state.exception.ActionParamsNeededException;
 import com.example.demo.service.state.exception.UnsupportedStatusForActionException;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -54,6 +57,20 @@ public interface IStatus {
   }
 
   default IStatus nextState(IStatusAction action) {
+    if (action.isVerifiable()) {
+      throw new ActionParamsNeededException(action.name());
+    }
+    return nextState(getSchemaMap(), action)
+        .orElseThrow(() -> new UnsupportedStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
+  }
+
+  default IStatus nextState(IStatusAction action, OrderActionEnum.ActionParamVO actionParamVO) {
+    List<Predicate<OrderActionEnum.ActionParamVO>> failedPredicates = action.getPredicates().stream()
+        .filter(e -> !e.test(actionParamVO))
+        .collect(Collectors.toList());
+    if (!failedPredicates.isEmpty()) {
+      throw new ActionConditionFailedException(failedPredicates.toArray().toString());
+    }
     return nextState(getSchemaMap(), action)
         .orElseThrow(() -> new UnsupportedStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
   }
