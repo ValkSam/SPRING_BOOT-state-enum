@@ -5,5 +5,6 @@ package com.example.demo.service.state.exception;
  */
 public class ActionConditionFailedException extends RuntimeException {
   public ActionConditionFailedException(String message) {
+    super(message);
   }
 }

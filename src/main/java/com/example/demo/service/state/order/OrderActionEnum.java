@@ -30,18 +30,11 @@ public enum OrderActionEnum implements IStatusAction{
     return predicates;
   }
 
-  @Builder
-  @Getter
-  public static class ActionParamVO {
-    private String currentUserStatus = null;
-    private List<String> currentUserPermissionList;
-  }
-
   public static class SavePredicate implements Predicate<ActionParamVO>{
     @Override
     public boolean test(ActionParamVO param) {
-      return "CONFIRMED".equals(param.currentUserStatus)
-          && (param.currentUserPermissionList != null && param.currentUserPermissionList.contains("CREATE_ORDER"));
+      return "CONFIRMED".equals(param.getCurrentUserStatus())
+          && (param.getCurrentUserPermissionList() != null && param.getCurrentUserPermissionList().contains("CREATE_ORDER"));
     }
   }
 

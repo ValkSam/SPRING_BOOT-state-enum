@@ -1,5 +1,6 @@
 package com.example.demo.service.state.order;
 
+import com.example.demo.service.state.exception.ActionConditionFailedException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -26,7 +27,22 @@ public class OrderStatusEnumTest {
   public void nextState() throws Exception {
     OrderStatusEnum state = CREATED;
     OrderStatusEnum nextState = ACTIVE;
-    Assert.assertEquals(nextState, state.nextState(SAVE));
+    IStatusAction.ActionParamVO param = IStatusAction.ActionParamVO.builder()
+        .currentUserStatus("CONFIRMED")
+        .currentUserPermissionList(Arrays.asList("CREATE_ORDER"))
+        .build();
+    Assert.assertEquals(nextState, state.nextState(SAVE, param));
+  }
+
+  @Test(expected = ActionConditionFailedException.class)
+  public void nextStateFail() throws Exception {
+    OrderStatusEnum state = CREATED;
+    OrderStatusEnum nextState = ACTIVE;
+    IStatusAction.ActionParamVO param = IStatusAction.ActionParamVO.builder()
+        .currentUserStatus("REGISTERED")
+        .currentUserPermissionList(Arrays.asList("CREATE_ORDER"))
+        .build();
+    Assert.assertEquals(nextState, state.nextState(SAVE, param));
   }
 
   @Test

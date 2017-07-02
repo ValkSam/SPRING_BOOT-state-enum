@@ -69,7 +69,7 @@ public interface IStatus {
         .filter(e -> !e.test(actionParamVO))
         .collect(Collectors.toList());
     if (!failedPredicates.isEmpty()) {
-      throw new ActionConditionFailedException(failedPredicates.toArray().toString());
+      throw new ActionConditionFailedException(failedPredicates.stream().map(e->e.getClass().getSimpleName()).collect(Collectors.joining(";")));
     }
     return nextState(getSchemaMap(), action)
         .orElseThrow(() -> new UnsupportedStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));

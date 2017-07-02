@@ -5,5 +5,6 @@ package com.example.demo.service.state.exception;
  */
 public class ActionParamsNeededException extends RuntimeException {
   public ActionParamsNeededException(String message) {
+    super(message);
   }
 }
