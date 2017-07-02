@@ -3,6 +3,7 @@ package com.example.demo.service.state.order;
 import com.example.demo.service.state.exception.ActionConditionFailedException;
 import com.example.demo.service.state.exception.ActionParamsNeededException;
 import com.example.demo.service.state.exception.UnsupportedStatusForActionException;
+import com.example.demo.service.state.exception.UnsupportedStatusNameException;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -69,7 +70,7 @@ public interface IStatus {
         .filter(e -> !e.test(actionParamVO))
         .collect(Collectors.toList());
     if (!failedPredicates.isEmpty()) {
-      throw new ActionConditionFailedException(failedPredicates.stream().map(e->e.getClass().getSimpleName()).collect(Collectors.joining(";")));
+      throw new ActionConditionFailedException(failedPredicates.stream().map(e -> e.getClass().getSimpleName()).collect(Collectors.joining(";")));
     }
     return nextState(getSchemaMap(), action)
         .orElseThrow(() -> new UnsupportedStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
@@ -93,6 +94,20 @@ public interface IStatus {
     return Arrays.stream(statusClass.getEnumConstants())
         .filter(e -> action.stream().filter(a -> e.availableForAction(a)).findFirst().isPresent())
         .collect(Collectors.toSet());
+  }
+
+  public static IStatus convert(Class<? extends IStatus> statusClass, int id) {
+    return Arrays.stream(statusClass.getEnumConstants())
+        .filter(e -> e.getCode() == id)
+        .findAny()
+        .orElseThrow(() -> new UnsupportedStatusForActionException(String.valueOf(id)));
+  }
+
+  public static IStatus convert(Class<? extends IStatus> statusClass, String name) {
+    return Arrays.stream(statusClass.getEnumConstants())
+        .filter(e -> e.name().equals(name))
+        .findAny()
+        .orElseThrow(() -> new UnsupportedStatusNameException(name));
   }
 
 

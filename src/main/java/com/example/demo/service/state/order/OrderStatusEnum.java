@@ -89,18 +89,5 @@ public enum OrderStatusEnum implements IStatus {
     IStatus.getBeginState(OrderStatusEnum.class);
   }
 
-  public static OrderStatusEnum convert(int id) {
-    return Arrays.stream(OrderStatusEnum.class.getEnumConstants())
-        .filter(e -> e.code == id)
-        .findAny()
-        .orElseThrow(() -> new UnsupportedStatusForActionException(String.valueOf(id)));
-  }
-
-  public static OrderStatusEnum convert(String name) {
-    return Arrays.stream(OrderStatusEnum.class.getEnumConstants())
-        .filter(e -> e.name().equals(name))
-        .findAny()
-        .orElseThrow(() -> new UnsupportedStatusNameException(name));
-  }
 
 }
