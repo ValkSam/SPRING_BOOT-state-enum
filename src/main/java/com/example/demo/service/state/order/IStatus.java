@@ -31,7 +31,7 @@ public interface IStatus {
 
     static IStatus getBeginState(Class<? extends IStatus> statusClass) {
         Set<IStatus> allNodesSet = collectAllSchemaMapNodesSet(statusClass);
-        List<IStatus> candidateList = Arrays.stream(ExampleStatusEnum.class.getEnumConstants())
+        List<IStatus> candidateList = Arrays.stream(ExampleStatusEnum.values())
                 .filter(e -> !allNodesSet.contains(e))
                 .collect(Collectors.toList());
         if (candidateList.size() == 0) {

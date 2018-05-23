@@ -85,7 +85,7 @@ public enum ExampleStatusEnum implements IStatus {
     }
 
     static {
-        for (IStatus status : ExampleStatusEnum.class.getEnumConstants()) {
+        for (IStatus status : ExampleStatusEnum.values()) {
             status.initSchema(status.getSchemaMap());
         }
         // check schemaMap
