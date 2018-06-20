@@ -2,10 +2,9 @@ package com.example.demo.service.state.order;
 
 import com.example.demo.service.state.exception.ActionConditionFailedException;
 import com.example.demo.service.state.exception.ActionParamsNeededException;
+import com.example.demo.service.state.exception.ActionParamsNotNeededException;
 import com.example.demo.service.state.exception.UnsupportedStatusForActionException;
 import com.example.demo.service.state.exception.UnsupportedStatusNameException;
-import com.example.demo.service.state.order.example.ExampleActionEnum;
-import com.example.demo.service.state.order.example.ExampleStatusEnum;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -19,7 +18,7 @@ import java.util.stream.Collectors;
 /**
  * Created by ValkSam
  */
-public interface IStatus {
+public interface IStatus<T> {
 
     void initSchema(Map<IStatusAction, IStatus> schemaMap);
 
@@ -31,14 +30,14 @@ public interface IStatus {
 
     static IStatus getBeginState(Class<? extends IStatus> statusClass) {
         Set<IStatus> allNodesSet = collectAllSchemaMapNodesSet(statusClass);
-        List<IStatus> candidateList = Arrays.stream(ExampleStatusEnum.values())
+        List<IStatus> candidateList = Arrays.stream(statusClass.getEnumConstants())
                 .filter(e -> !allNodesSet.contains(e))
                 .collect(Collectors.toList());
         if (candidateList.size() == 0) {
             throw new AssertionError("begin state not found");
         }
         if (candidateList.size() > 1) {
-            throw new AssertionError("more than single begin state found: " + candidateList);
+            throw new AssertionError("more than one begin state found: " + candidateList);
         }
         return candidateList.get(0);
     }
@@ -72,34 +71,44 @@ public interface IStatus {
                 .orElseThrow(() -> new UnsupportedStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
     }
 
-    default IStatus nextState(IStatusAction action, ExampleActionEnum.ActionParamVO actionParamVO) {
-        List<Predicate<ExampleActionEnum.ActionParamVO>> failedPredicates = action.getPredicates().stream()
-                .filter(e -> !e.test(actionParamVO))
+    default IStatus nextState(IStatusAction<T> action, T actionParam) {
+        IStatus result = nextState(getSchemaMap(), action)
+                .orElseThrow(() -> new UnsupportedStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
+
+        if (!action.isVerifiable()) {
+            throw new ActionParamsNotNeededException(action.name());
+        }
+
+        List<Predicate<T>> failedPredicates = action.getPredicates().stream()
+                .filter(e -> !e.test(actionParam))
                 .collect(Collectors.toList());
         if (!failedPredicates.isEmpty()) {
-            throw new ActionConditionFailedException(failedPredicates.stream().map(e -> e.getClass().getSimpleName()).collect(Collectors.joining(";")));
+            String message = " failed predicate(s): "
+                    + failedPredicates.stream().map(e -> e.getClass().getSimpleName()).collect(Collectors.joining(";"))
+                    + " for param: " + actionParam
+                    + " when action: " + action.name() + " on state: " + this.name();
+            throw new ActionConditionFailedException(message);
         }
-        return nextState(getSchemaMap(), action)
-                .orElseThrow(() -> new UnsupportedStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
+        return result;
     }
 
     default Optional<IStatus> nextState(Map<IStatusAction, IStatus> schemaMap, IStatusAction action) {
         return Optional.ofNullable(schemaMap.get(action));
     }
 
-    default Boolean availableForAction(IStatusAction action) {
+    default Boolean isAvailableForAction(IStatusAction action) {
         return getSchemaMap().get(action) != null;
     }
 
     static Set<IStatus> getAvailableForAction(Class<? extends IStatus> statusClass, IStatusAction action) {
         return Arrays.stream(statusClass.getEnumConstants())
-                .filter(e -> e.availableForAction(action))
+                .filter(e -> e.isAvailableForAction(action))
                 .collect(Collectors.toSet());
     }
 
     static Set<IStatus> getAvailableForAction(Class<? extends IStatus> statusClass, Set<IStatusAction> action) {
         return Arrays.stream(statusClass.getEnumConstants())
-                .filter(e -> action.stream().filter(a -> e.availableForAction(a)).findFirst().isPresent())
+                .filter(e -> action.stream().anyMatch(action1 -> e.isAvailableForAction(action1)))
                 .collect(Collectors.toSet());
     }
 
