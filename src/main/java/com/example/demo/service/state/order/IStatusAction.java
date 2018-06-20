@@ -1,6 +1,7 @@
 package com.example.demo.service.state.order;
 
 import com.example.demo.service.state.order.example.ExampleActionEnum;
+import com.example.demo.service.state.order.example.actionparam.ActionParam;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -10,20 +11,13 @@ import java.util.function.Predicate;
 /**
  * Created by ValkSam
  */
-public interface IStatusAction {
+public interface IStatusAction<T> {
   String name();
 
-  List<Predicate<ExampleActionEnum.ActionParamVO>> getPredicates();
+  List<Predicate<T>> getPredicates();
 
   default boolean isVerifiable() {
     return !getPredicates().isEmpty();
-  }
-
-  @Builder
-  @Getter
-  class ActionParamVO {
-    private String someParam = null;
-    private List<String> somePermissionList;
   }
 
 }

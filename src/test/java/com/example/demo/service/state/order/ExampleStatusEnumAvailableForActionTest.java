@@ -37,9 +37,9 @@ public class ExampleStatusEnumAvailableForActionTest {
         {STATUS_3, ACTION_8},
         {STATUS_3, ACTION_5},
         {STATUS_3, ACTION_4},
-        {STATUS__5, ACTION_6},
-        {STATUS__5, ACTION_7},
-        {STATUS__5, ACTION_1},
+        {STATUS_5, ACTION_6},
+        {STATUS_5, ACTION_7},
+        {STATUS_5, ACTION_1},
     });
   }
 
